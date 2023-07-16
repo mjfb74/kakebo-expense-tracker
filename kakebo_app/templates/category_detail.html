@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1>Expense Details for {{ category_name }} ({{ expenses.first.category }}) - {{ month_year }}</h1>
+        <table class="table table-bordered table-hover">
+            <thead class="thead-light">     
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Vendor</th>
+                    <th scope="col">Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td>{{ expense.date }}</td>
+                    <td>€ {{ expense.amount|floatformat:2 }}</td>
+                    <td>{{ expense.vendor }}</td>
+                    <td>{{ expense.description }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No expenses found for this category in the selected month.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'get_sums' %}" class="btn btn-secondary mt-4">Back to Summary</a>
+    </div>
+{% endblock %}

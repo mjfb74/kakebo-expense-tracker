@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1>Expense Summary</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="date">Select a month and year:</label>
+                <input class="form-control" type="month" id="date" name="date" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Get Sums</button>
+        </form>
+    </div>
+{% endblock %}

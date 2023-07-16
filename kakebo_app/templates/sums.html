@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1>Expense Summary for {{ month_year|date:"F Y" }}</h1>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Category</th>
+                    <th scope="col">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in sums %}
+                <tr>
+                    <td>
+                        <a href="{% url 'category_detail' item.category month_year|date:"Y" month_year|date:"F" %}">
+                            {{ item.category_name }} ({{ item.category }})
+                        </a>
+                    </td>
+                    <td>€ {{ item.total|floatformat:2 }}</td> <!-- Add floatformat here -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2 class="mt-4">Enter another month and year</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="date">Select a month and year:</label>
+                <input class="form-control" type="month" id="date" name="date" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Get Sums</button>
+        </form>
+    </div>
+{% endblock %}
