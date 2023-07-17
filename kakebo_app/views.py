@@ -9,6 +9,10 @@ from datetime import datetime
 from calendar import month_name
 
 
+def home(request):
+    return render(request, 'home.html')
+
+
 def enter_expense(request):
     if request.method == 'POST':
         form = ExpenseForm(request.POST)    # A form bound to the POST data
@@ -18,6 +22,37 @@ def enter_expense(request):
     else:
         form = ExpenseForm()            # An unbound form
     return render(request, 'enter_expense.html', {'form': form})        
+
+
+def get_expenses(request):
+    expenses = Expense.objects.all().order_by('-date')  # orders the expenses in descending order by date
+    return render(request, 'expenses_list.html', {'expenses': expenses})
+
+
+def expenses_list(request):
+    expenses = Expense.objects.all()
+    return render(request, 'expenses_list.html', {'expenses': expenses})
+
+
+def edit_expense(request, expense_id):
+    expense = Expense.objects.get(id=expense_id)
+    if request.method == 'POST':
+        form = ExpenseForm(request.POST, instance=expense)
+        if form.is_valid():
+            form.save()
+            return redirect('expenses_list')
+    else:
+        form = ExpenseForm(instance=expense)
+    return render(request, 'edit_expense.html', {'form': form})
+
+
+def delete_expense(request, expense_id):
+    expense = get_object_or_404(Expense, id=expense_id)
+    if request.method == 'POST':
+        expense.delete()
+        return redirect('expenses_list')
+    else:
+        return render(request, 'confirm_delete.html', {'expense': expense})
 
 
 def get_sums(request):

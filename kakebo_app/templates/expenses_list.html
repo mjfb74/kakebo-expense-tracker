@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1>Expenses List</h1>
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Vendor</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for expense in expenses %}
+                <tr>
+                    <td>{{ expense.date|date:"F d, Y" }}</td>
+                    <td>{{ expense.vendor }}</td> <!-- Vendor field -->
+                    <td>{{ expense.description }}</td> <!-- Description field -->
+                    <td>€ {{ expense.amount|floatformat:2 }}</td>
+                    <td>{{ expense.get_category_display }}</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm" href="{% url 'edit_expense' expense.id %}">Edit</a>
+                        <a class="btn btn-danger btn-sm" href="{% url 'delete_expense' expense.id %}">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

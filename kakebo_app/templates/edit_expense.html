@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1>Edit Expense</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.amount.id_for_label }}">Amount</label>
+                <input type="number" class="form-control" id="{{ form.amount.id_for_label }}" name="{{ form.amount.html_name }}" value="{{ form.amount.value }}">
+            </div>
+            <div class="form-group">
+                <label for="{{ form.category.id_for_label }}">Category</label>
+                <select class="form-control" id="{{ form.category.id_for_label }}" name="{{ form.category.html_name }}">
+                    <option value="BN" {% if form.category.value == "BN" %}selected{% endif %}>Basic Needs</option>
+                    <option value="RF" {% if form.category.value == "RF" %}selected{% endif %}>Recreation and Fun</option>
+                    <option value="CE" {% if form.category.value == "CE" %}selected{% endif %}>Culture and Extras</option>
+                    <option value="EX" {% if form.category.value == "EX" %}selected{% endif %}>Extras</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                <input type="text" class="form-control" id="{{ form.description.id_for_label }}" name="{{ form.description.html_name }}" value="{{ form.description.value }}">
+            </div>
+            <div class="form-group">
+                <label for="{{ form.vendor.id_for_label }}">Vendor</label>
+                <input type="text" class="form-control" id="{{ form.vendor.id_for_label }}" name="{{ form.vendor.html_name }}" value="{{ form.vendor.value }}">
+            </div>
+            <div class="form-group">
+                <label for="{{ form.date.id_for_label }}">Date</label>
+                <input type="date" class="form-control" id="{{ form.date.id_for_label }}" name="{{ form.date.html_name }}" value="{{ form.date.value|date:'Y-m-d' }}">
+            </div>            
+            <button type="submit" class="btn btn-primary">Update Expense</button>
+        </form>
+    </div>
+{% endblock %}

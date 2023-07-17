@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container my-4">
+        <h1>Welcome to the Kakebo Expense Tracker</h1>
+        <div class="my-4">
+            <a href="{% url 'enter_expense' %}" class="btn btn-primary">Enter Expenses</a>
+            <br>
+            <br>
+            <br>
+            <a href="{% url 'expenses_list' %}" class="btn btn-primary">View Expenses</a>
+            <br>
+            <br>
+            <br>
+            <a href="{% url 'get_sums' %}" class="btn btn-primary">Get Sums</a>
+        </div>
+    </div>
+{% endblock %}
