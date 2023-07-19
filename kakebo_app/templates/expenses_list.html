@@ -1,34 +1,102 @@
 {% extends 'base.html' %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 {% block content %}
-    <div class="container my-4">
-        <h1>Expenses List</h1>
-        <table class="table table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th scope="col">Date</th>
-                    <th scope="col">Vendor</th>
-                    <th scope="col">Description</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Category</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for expense in expenses %}
-                <tr>
-                    <td>{{ expense.date|date:"F d, Y" }}</td>
-                    <td>{{ expense.vendor }}</td> <!-- Vendor field -->
-                    <td>{{ expense.description }}</td> <!-- Description field -->
-                    <td>€ {{ expense.amount|floatformat:2 }}</td>
-                    <td>{{ expense.get_category_display }}</td>
-                    <td>
-                        <a class="btn btn-primary btn-sm" href="{% url 'edit_expense' expense.id %}">Edit</a>
-                        <a class="btn btn-danger btn-sm" href="{% url 'delete_expense' expense.id %}">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="container my-4">
+    <h1>Expenses List</h1>
+
+    <div class="card my-4">
+        <div class="card-body">
+            <h5 class="card-title">Filter Expenses</h5>
+            <form method="get">
+                <div class="row gy-3 mb-4">
+                    <div class="col-md-4 mb-3">
+                        <select class="form-control" id="category" name="category">
+                            <option value="">-- Select a Category --</option>
+                            {% for code, name in categories %}
+                            <option value="{{ code }}" {% if request.GET.category == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <input type="text" class="form-control" id="vendor" name="vendor" placeholder="Vendor" value="{{ request.GET.vendor }}">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <input type="month" class="form-control" id="date" name="date" value="{{ request.GET.date }}">
+                    </div>
+                </div>
+                <div class="row gy-3">
+                    <div class="col-md-4 mb-3">
+                        <input type="number" class="form-control" id="min_amount" name="min_amount" step="0.01" placeholder="Min Amount" value="{{ request.GET.min_amount }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <input type="number" class="form-control" id="max_amount" name="max_amount" step="0.01" placeholder="Max Amount" value="{{ request.GET.max_amount }}">
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button type="submit" class="btn btn-primary">Apply Filter</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
+
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Vendor</th>
+                <th scope="col">Description</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Category</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td>{{ expense.date|date:"F d, Y" }}</td>
+                <td>{{ expense.vendor }}</td>
+                <td>{{ expense.description }}</td>
+                <td>€ {{ expense.amount|floatformat:2 }}</td>
+                <td>{{ expense.get_category_display }}</td>
+                <td>
+                    <a class="btn btn-primary btn-sm" href="{% url 'edit_expense' expense.id %}">Edit</a>
+                    <a class="btn btn-danger btn-sm" href="{% url 'delete_expense' expense.id %}">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-3">Return Home</a>
+
+    <div class="my-4">
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+
+<script>
+let ctx = document.getElementById('myChart').getContext('2d');
+let category_data = {{ category_data|safe }};
+let labels = category_data.map(obj => obj.category);
+let data = category_data.map(obj => obj.total);
+
+let myChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: data,
+            backgroundColor: [ /* you can specify colors here */ ],
+        }]
+    },
+    options: {
+        responsive: true,
+        title: {
+            display: true,
+            text: 'Expenses by Category'
+        }
+    }
+});
+</script>
 {% endblock %}

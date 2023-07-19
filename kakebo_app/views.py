@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import ExpenseForm
+from .forms import ExpenseForm, CurrencyConversionForm
 from .models import Expense
 from django.db.models import Sum
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
-from django.db.models import DateTimeField
+from django.db.models import DateTimeField, Q, Sum
 from datetime import datetime
 from calendar import month_name
+import requests
+from .constants import CURRENCY_CODES
 
 
 def home(request):
@@ -15,24 +17,60 @@ def home(request):
 
 def enter_expense(request):
     if request.method == 'POST':
-        form = ExpenseForm(request.POST)    # A form bound to the POST data
-        if form.is_valid():                 # All validation rules pass
-            form.save()                 # Save the data
-            return redirect('enter_expense')  # Redirect after POST
+        form = ExpenseForm(request.POST)    
+        if form.is_valid():                 
+            form.save()             
+            return redirect('enter_expense') 
     else:
-        form = ExpenseForm()            # An unbound form
+        form = ExpenseForm()          
     return render(request, 'enter_expense.html', {'form': form})        
-
-
-def get_expenses(request):
-    expenses = Expense.objects.all().order_by('-date')  # orders the expenses in descending order by date
-    return render(request, 'expenses_list.html', {'expenses': expenses})
 
 
 def expenses_list(request):
     expenses = Expense.objects.all()
-    return render(request, 'expenses_list.html', {'expenses': expenses})
 
+    category = request.GET.get('category', '')
+    vendor = request.GET.get('vendor', '')
+    date = request.GET.get('date', '')
+    min_amount = request.GET.get('min_amount', '')
+    max_amount = request.GET.get('max_amount', '')
+
+    if category:
+        expenses = expenses.filter(category=category)
+    if vendor:
+        expenses = expenses.filter(vendor__icontains=vendor)
+    if date:
+        expenses = expenses.filter(date__year=date.split('-')[0], date__month=date.split('-')[1])
+    if min_amount:
+        expenses = expenses.filter(amount__gte=min_amount)
+    if max_amount:
+        expenses = expenses.filter(amount__lte=max_amount)
+
+    expenses = expenses.order_by('date')
+
+    # Summarize expenses by category
+    category_sums = expenses.values('category').annotate(total=Sum('amount'))
+
+    category_names = {
+        'BN': 'Basic Needs',
+        'RF': 'Recreation and Fun',
+        'CE': 'Culture and Extras',
+        'EX': 'Extras',
+    }
+
+    category_data = [{'category': category_names.get(item['category'], 'Unknown'), 'total': item['total']} for item in category_sums]
+
+    category_codes = Expense.objects.values_list('category', flat=True).distinct()
+    categories = [(code, category_names.get(code, 'Unknown')) for code in category_codes]
+
+    for expense in expenses:
+        if expense.currency != 'EUR':
+            exchange_rate = get_exchange_rate(expense.currency, 'EUR')
+            if exchange_rate is not None:
+                expense.amount = round(expense.amount * exchange_rate, 2)
+
+    return render(request, 'expenses_list.html', {'expenses': expenses, 'categories': categories, 'category_data': category_data})
+    
 
 def edit_expense(request, expense_id):
     expense = Expense.objects.get(id=expense_id)
@@ -58,7 +96,7 @@ def delete_expense(request, expense_id):
 def get_sums(request):
     if request.method == 'POST':
         date = request.POST.get('date')
-        year, month = map(int, date.split('-'))  # split the date string into year and month
+        year, month = map(int, date.split('-')) 
         sums = Expense.objects.filter(date__year=year, date__month=month).values('category').annotate(total=Sum('amount'))
         category_names = {
             'BN': 'Basic Needs',
@@ -69,7 +107,6 @@ def get_sums(request):
         for item in sums:
             item['category_name'] = category_names.get(item['category'], 'Unknown')
 
-        # Convert 'month_year' to a datetime object
         month_year = datetime(year=year, month=month, day=1)
         
         return render(request, 'sums.html', {'sums': sums, 'month_year': month_year})
@@ -100,5 +137,35 @@ def category_detail(request, category, year, month):
     return render(request, 'category_detail.html', context)
 
 
+def get_exchange_rate(base_currency, target_currency):
+    response = requests.get(f'https://api.exchangeratesapi.io/latest?base={base_currency}')
+    rates = response.json().get('rates', {})
+    return rates.get(target_currency, 1)  # This should return a single numeric value
+
+
+def currency_conversion(request):
+    form = CurrencyConversionForm()
+    if request.method == 'POST':
+        form = CurrencyConversionForm(request.POST)
+        if form.is_valid():
+            amount = form.cleaned_data['amount']
+            base_currency = form.cleaned_data['base_currency']
+            target_currency = form.cleaned_data['target_currency']
+            exchange_rate = get_exchange_rate(base_currency, target_currency)
+            converted_amount = amount * exchange_rate
+            return render(request, 'currency_conversion.html', {'form': form, 'exchange_rate': exchange_rate, 'converted_amount': converted_amount})
+
+    return render(request, 'currency_conversion.html', {'form': form})
+
+
+def set_currency(request):
+    if request.method == 'POST':
+        selected_currency = request.POST.get('currency')
+        if selected_currency in CURRENCY_CODES:
+            request.session['currency'] = selected_currency
+        return redirect('enter_expense')
+    else:
+        # Show the form with the list of currencies
+        return render(request, 'set_currency.html', {'currencies': CURRENCY_CODES})
 
 

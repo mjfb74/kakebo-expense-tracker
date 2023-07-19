@@ -9,4 +9,6 @@ urlpatterns = [
     path('expenses_list/', views.expenses_list, name='expenses_list'),
     path('edit_expense/<int:expense_id>/', views.edit_expense, name='edit_expense'),
     path('delete_expense/<int:expense_id>/', views.delete_expense, name='delete_expense'),
+    path('currency-conversion/', views.currency_conversion, name='currency_conversion'),
+    path('set_currency/', views.set_currency, name='set_currency'),  # Add this line
 ]
