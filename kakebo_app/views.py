@@ -145,17 +145,32 @@ def get_exchange_rate(base_currency, target_currency):
 
 def currency_conversion(request):
     form = CurrencyConversionForm()
+    context = {'form': form}
+
     if request.method == 'POST':
         form = CurrencyConversionForm(request.POST)
         if form.is_valid():
             amount = form.cleaned_data['amount']
             base_currency = form.cleaned_data['base_currency']
             target_currency = form.cleaned_data['target_currency']
-            exchange_rate = get_exchange_rate(base_currency, target_currency)
-            converted_amount = amount * exchange_rate
-            return render(request, 'currency_conversion.html', {'form': form, 'exchange_rate': exchange_rate, 'converted_amount': converted_amount})
 
-    return render(request, 'currency_conversion.html', {'form': form})
+            api_key = "5f31b205544b5f29fe4fb271919152c7"
+            response = requests.get(f"http://api.exchangeratesapi.io/v1/latest?access_key={api_key}")
+            data = response.json()
+
+            base_rate = data['rates'][base_currency]
+            conversion_rate = data['rates'][target_currency]
+            converted_amount = round(amount * conversion_rate / base_rate, 2)
+
+            context = {
+                'form': form,
+                'base_currency': base_currency,
+                'target_currency': target_currency,
+                'amount': amount,
+                'converted_amount': converted_amount
+            }
+
+    return render(request, 'currency_conversion.html', context)
 
 
 def set_currency(request):

@@ -18,10 +18,10 @@
                 {{ form.target_currency }}
             </div>
             <button type="submit" class="btn btn-primary">Convert</button>
-        </form>
-        {% if exchange_rate %}
+        </form>        
+        {% if base_currency %}
             <div class="mt-3">
-                <p>Exchange Rate: <span class="font-weight-bold">{{ exchange_rate }}</span></p>
+                <p>Exchange Rate: <span class="font-weight-bold">{{ base_currency }}</span></p>
                 <p>Converted Amount: <span class="font-weight-bold">{{ converted_amount }}</span></p>
             </div>
         {% endif %}

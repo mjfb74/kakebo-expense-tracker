@@ -2,14 +2,11 @@ from django.db import models
 
 CURRENCY_CHOICES = [
     ('EUR', 'Euro'),
-    ('USD', 'US Dollar'),
     ('PLN', 'Polish Zloty'),
+    ('USD', 'US Dollar'),
     ('GBP', 'British Pound'),
     ('JPY', 'Japanese Yen'),
     ('CNY', 'Chinese Yuan'),
-    ('CAD', 'Canadian Dollar'),
-    ('AUD', 'Australian Dollar'),
-    ('NZD', 'New Zealand Dollar'),
     ('CHF', 'Swiss Franc'),
     ('SEK', 'Swedish Krona'),
     ('NOK', 'Norwegian Krone'),
